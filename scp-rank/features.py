@@ -27,6 +27,8 @@ aux = graphlab.SFrame(
 	'options':auxdata[4]})
 del auxdata
 
+titles = aux[['item_id','title']].to_dataframe().set_index('item_id').to_dict(orient='dict')['title']
+
 aux = aux.unpack('options')
 
 
@@ -36,39 +38,49 @@ votes = votes.filter_by(aux['item_id'], 'item_id')
 
 tags = graphlab.toolkits.feature_engineering.OneHotEncoder(features='tags').fit_transform(aux[['item_id','tags']])
 
-# print "Fitting model ..."
-# rec = graphlab.factorization_recommender.create(
-# 	observation_data=votes, target='rating',
-# 	item_data=tags, binary_target=True,
-# 	num_factors=30, max_iterations=100)
+
+print "Fitting model ..."
+model =	graphlab.factorization_recommender.create(
+		observation_data=votes, target='rating',
+		item_data=tags, binary_target=True)
 
 
+print "Generating recommendations ..."
+links = model.get_similar_items(k=2)
+links = links.groupby('item_id', {'similar': graphlab.aggregate.CONCAT('similar')})
 
-# print "Generating recommendations ..."
-# links = rec.get_similar_items(k=2)
-# links = links.groupby('item_id', {'similar': graphlab.aggregate.CONCAT('similar')})
+
+print "Writing files ...."
+
+template = u"""---
+style: default
+permalink: X{0}
+title: {1}
+---
+You may also like:
+
+[{3}](http://scp-wiki.net/{2})
+
+[{5}](http://scp-wiki.net/{4})
+"""
+
+folder = 'recs/'
+for the_file in os.listdir(folder):
+	file_path = os.path.join(folder, the_file)
+	try:
+		if os.path.isfile(file_path):
+			os.unlink(file_path)
+
+	except Exception as e:
+		print(e)
 
 
-# print "Writing files ...."
-# template = u"""---
-# style: default
-# permalink: X{0}
-# title: {1}
-# ---
-# You may also like:
-
-# [{3}](http://scp-wiki.net/{2})
-
-# [{5}](http://scp-wiki.net/{4})
-# """
-
-# for link in links:
-# 	with open('recs/{}.md'.format(link['item_id']), 'w') as out:
-# 		try:
-# 			out.write(template.format(link['item_id'], link['item_id'], 
-# 				link['similar'][0], titles[link['similar'][0]],
-# 				link['similar'][1], titles[link['similar'][1]]))
-# 		except:
-# 			os.unlink(out.name)
-
+for link in links:
+	with open('recs/{}.md'.format(link['item_id']), 'w') as out:
+		try:
+			out.write(template.format(link['item_id'], link['item_id'], 
+				link['similar'][0], titles[link['similar'][0]],
+				link['similar'][1], titles[link['similar'][1]]))
+		except:
+			os.unlink(out.name)
 
