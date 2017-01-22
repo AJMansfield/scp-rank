@@ -26,7 +26,7 @@ with open('aux.pkl', 'rb') as inpt:
 tags = graphlab.SFrame({'item_id':auxdata[0], 'tags':auxdata[2]})
 tags_encoded = graphlab.toolkits.feature_engineering.OneHotEncoder(features='tags').fit_transform(tags)
 
-titles = {a: b for a,b in zip(auxdata[0], auxdata[1])}
+data = {a: b for a,b in zip(auxdata[0], auxdata[1])}
 
 print "Fitting model ..."
 rec = graphlab.factorization_recommender.create(
