@@ -33,7 +33,7 @@ def vote_data_array(page):
 
 
 
-def get_control(source, default):
+def get_control(source, default = {'opt':'all'}):
 	import pyparsing as pp
 
 	d = default.copy()
@@ -61,7 +61,7 @@ def aux_data(page):
 	try:
 		return (page.name, page.title, page.tags, page.text, get_control(page.source))
 	except:
-	 	pass
+		pass
 
 
 
@@ -75,10 +75,10 @@ if __name__ == '__main__':
 
 	tc = 16
 
-	with mp.Pool(tc) as p:
-		votes = [ v for v in itertools.chain(*p.map(vote_data_array, tqdm(pages), chunksize=10)) ]
-	with open('votes.pkl', 'wb') as output:
-		pickle.dump(votes, output, protocol=2)
+	# with mp.Pool(tc) as p:
+	# 	votes = [ v for v in itertools.chain(*p.map(vote_data_array, tqdm(pages), chunksize=10)) ]
+	# with open('votes.pkl', 'wb') as output:
+	# 	pickle.dump(votes, output, protocol=2)
 
 	with mp.Pool(tc) as p:
 		aux = p.map(aux_data, tqdm(pages), chunksize=10)
