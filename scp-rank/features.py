@@ -6,8 +6,8 @@ import os
 
 
 print "Processing votes ..."
-with open('votes.pkl', 'rb') as inpt:
-	votedata = zip(* pickle.load(inpt) )
+with open('votes.pkl', 'rb') as input:
+	votedata = zip(* filter(None, pickle.load(input)) )
 
 votedata[2] = map(lambda x:x if x!= -1 else 0, votedata[2])
 
@@ -16,8 +16,8 @@ del votedata
 
 
 print "Processing tags ..."
-with open('aux.pkl', 'rb') as inpt:
-	auxdata = zip(* pickle.load(inpt) )
+with open('aux.pkl', 'rb') as input:
+	auxdata = zip(* filter(None, pickle.load(input)) )
 
 aux = graphlab.SFrame(
 	{'item_id':auxdata[0],
@@ -27,10 +27,14 @@ aux = graphlab.SFrame(
 	'options':auxdata[4]})
 del auxdata
 
-# tags = graphlab.SFrame({'item_id':auxdata[0], 'tags':auxdata[2]})
-# tags_encoded = graphlab.toolkits.feature_engineering.OneHotEncoder(features='tags').fit_transform(tags)
+aux = aux.unpack('options')
 
-# data = {a: b for a,b in zip(auxdata[0], auxdata[1])}
+
+aux = aux.filter_by(['all'], 'options.opt')
+votes = votes.filter_by(aux['item_id'], 'item_id')
+
+
+tags = graphlab.toolkits.feature_engineering.OneHotEncoder(features='tags').fit_transform(aux[['item_id','tags']])
 
 # print "Fitting model ..."
 # rec = graphlab.factorization_recommender.create(

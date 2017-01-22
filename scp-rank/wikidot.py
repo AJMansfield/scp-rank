@@ -33,7 +33,7 @@ def vote_data_array(page):
 
 
 
-def get_control(source, default = {'opt':'all'}):
+def get_control(source, default = {'allow':'true'}):
 	import pyparsing as pp
 
 	d = default.copy()
@@ -69,16 +69,16 @@ def aux_data(page):
 if __name__ == '__main__':
 	wiki = pyscp.wikidot.Wiki('www.scp-wiki.net')
 	wiki.req = requests.Session()
-	# pages = [p for p in tqdm(wiki.list_pages(), total=7000)]
-	with open('pages.pkl', 'rb') as input:
-		pages = pickle.load(input)
+	pages = [p for p in tqdm(wiki.list_pages(), total=7000)]
+	# with open('pages.pkl', 'rb') as input:
+	# 	pages = pickle.load(input)
 
 	tc = 16
 
-	# with mp.Pool(tc) as p:
-	# 	votes = [ v for v in itertools.chain(*p.map(vote_data_array, tqdm(pages), chunksize=10)) ]
-	# with open('votes.pkl', 'wb') as output:
-	# 	pickle.dump(votes, output, protocol=2)
+	with mp.Pool(tc) as p:
+		votes = [ v for v in itertools.chain(*p.map(vote_data_array, tqdm(pages), chunksize=10)) ]
+	with open('votes.pkl', 'wb') as output:
+		pickle.dump(votes, output, protocol=2)
 
 	with mp.Pool(tc) as p:
 		aux = p.map(aux_data, tqdm(pages), chunksize=10)
