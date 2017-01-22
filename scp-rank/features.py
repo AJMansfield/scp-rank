@@ -2,6 +2,7 @@
 
 import pickle
 import graphlab
+import os
 
 
 print "Processing votes ..."
@@ -43,17 +44,23 @@ links = links.groupby('item_id', {'similar': graphlab.aggregate.CONCAT('similar'
 print "Writing files ...."
 template = u"""---
 style: default
-permalink: {0}
+permalink: X{0}
 title: {1}
 ---
 You may also like:
+
 [{3}](http://scp-wiki.net/{2})
-[{5}](http://scp-wiki.net/{4})"""
+
+[{5}](http://scp-wiki.net/{4})
+"""
 
 for link in links:
 	with open('recs/{}.md'.format(link['item_id']), 'w') as out:
-		out.write(template.format(link['item_id'], link['item_id'], 
-			link['similar'][0], titles[link['similar'][0]],
-			link['similar'][1], titles[link['similar'][1]]))
+		try:
+			out.write(template.format(link['item_id'], link['item_id'], 
+				link['similar'][0], titles[link['similar'][0]],
+				link['similar'][1], titles[link['similar'][1]]))
+		except:
+			os.unlink(out.name)
 
 
